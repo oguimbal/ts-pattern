@@ -1,15 +1,18 @@
-import { Pattern, SelectPattern, GuardValue } from './Pattern';
+import { Pattern, SelectPattern } from './Pattern';
 import { ExtractPreciseValue } from './ExtractPreciseValue';
 import { InvertPattern } from './InvertPattern';
-import { ValueOf, UnionToIntersection } from './helpers';
+import {
+  ValueOf,
+  UnionToIntersection,
+  GuardValue,
+  StrictGuardValue,
+} from './helpers';
 
 // We fall back to `a` if we weren't able to extract anything more precise
 export type MatchedValue<a, p extends Pattern<a>> = ExtractPreciseValue<
   a,
   InvertPattern<p>
-> extends never
-  ? a
-  : ExtractPreciseValue<a, InvertPattern<p>>;
+>;
 
 // Infinite recursion is forbidden in typescript, so we have
 // to trick this by duplicating type and compute its result
@@ -71,13 +74,15 @@ export type Match<a, b> = {
   with<p extends Pattern<a>, c>(
     pattern: p,
     handler: (
-      value: MatchedValue<a, p>,
+      value: MatchedValue<a, p> extends never ? a : MatchedValue<a, p>,
       selections: ExtractSelections<a, p>
     ) => PickReturnValue<b, c>
-  ): Match<a, PickReturnValue<b, c>>;
+  ): Match<Exclude<a, MatchedValue<a, p>>, PickReturnValue<b, c>>;
   with<
     pat extends Pattern<a>,
-    pred extends (value: MatchedValue<a, pat>) => unknown,
+    pred extends (
+      value: MatchedValue<a, pat> extends never ? a : MatchedValue<a, pat>
+    ) => unknown,
     c
   >(
     pattern: pat,
@@ -86,11 +91,13 @@ export type Match<a, b> = {
       value: GuardValue<pred>,
       selections: ExtractSelections<a, pat>
     ) => PickReturnValue<b, c>
-  ): Match<a, PickReturnValue<b, c>>;
+  ): Match<Exclude<a, StrictGuardValue<pred>>, PickReturnValue<b, c>>;
 
   with<
     pat extends Pattern<a>,
-    pred extends (value: MatchedValue<a, pat>) => unknown,
+    pred extends (
+      value: MatchedValue<a, pat> extends never ? a : MatchedValue<a, pat>
+    ) => unknown,
     pred2 extends (value: GuardValue<pred>) => unknown,
     c
   >(
@@ -101,11 +108,13 @@ export type Match<a, b> = {
       value: GuardValue<pred2>,
       selections: ExtractSelections<a, pat>
     ) => PickReturnValue<b, c>
-  ): Match<a, PickReturnValue<b, c>>;
+  ): Match<Exclude<a, StrictGuardValue<pred2>>, PickReturnValue<b, c>>;
 
   with<
     pat extends Pattern<a>,
-    pred extends (value: MatchedValue<a, pat>) => unknown,
+    pred extends (
+      value: MatchedValue<a, pat> extends never ? a : MatchedValue<a, pat>
+    ) => unknown,
     pred2 extends (value: GuardValue<pred>) => unknown,
     pred3 extends (value: GuardValue<pred2>) => unknown,
     c
@@ -118,7 +127,7 @@ export type Match<a, b> = {
       value: GuardValue<pred3>,
       selections: ExtractSelections<a, pat>
     ) => PickReturnValue<b, c>
-  ): Match<a, PickReturnValue<b, c>>;
+  ): Match<Exclude<a, StrictGuardValue<pred3>>, PickReturnValue<b, c>>;
 
   /**
    * ### Match.when

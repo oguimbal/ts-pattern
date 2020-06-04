@@ -135,16 +135,6 @@ describe('types', () => {
     type Input = { type: string; hello?: { yo: number } } | string;
 
     const res = match<Input>({ type: 'hello' })
-      .with(__, (x) => {
-        const notNever: NotNever<typeof x> = true;
-        const inferenceCheck: Input = x;
-        return 'ok';
-      })
-      .with(__.string, (x) => {
-        const notNever: NotNever<typeof x> = true;
-        const inferenceCheck: string = x;
-        return 'ok';
-      })
       .with(
         when((x) => true),
         (x) => {
@@ -153,6 +143,8 @@ describe('types', () => {
           return 'ok';
         }
       )
+      .run();
+    match<Input>({ type: 'hello' })
       .with(
         when<Input>((x) => {
           const notNever: NotNever<typeof x> = true;
@@ -165,59 +157,95 @@ describe('types', () => {
           return 'ok';
         }
       )
+      .run();
+    match<Input>({ type: 'hello' })
       .with(not('hello'), (x) => {
         const notNever: NotNever<typeof x> = true;
         const inferenceCheck: Input = x;
         return 'ok';
       })
-      .with(not(__.string), (x) => {
-        const notNever: NotNever<typeof x> = true;
-        const inferenceCheck: { type: string } = x;
-        return 'ok';
-      })
+      .run();
+    match<Input>({ type: 'hello' })
       .with(not(when((x) => true)), (x) => {
         const notNever: NotNever<typeof x> = true;
         const inferenceCheck: Input = x;
         return 'ok';
       })
-      .with({ type: __ }, (x) => {
-        const notNever: NotNever<typeof x> = true;
-        const inferenceCheck: { type: string } = x;
-        return 'ok';
-      })
-      .with({ type: __.string }, (x) => {
-        const notNever: NotNever<typeof x> = true;
-        const inferenceCheck: { type: string } = x;
-        return 'ok';
-      })
+      .run();
+    match<Input>({ type: 'hello' })
       .with({ type: when((x) => true) }, (x) => {
         const notNever: NotNever<typeof x> = true;
         const inferenceCheck: { type: string } = x;
         return 'ok';
       })
-      .with({ type: not('hello' as 'hello') }, (x) => {
-        const notNever: NotNever<typeof x> = true;
-        const inferenceCheck: { type: string } = x;
-        return 'ok';
-      })
+      .run();
+    match<Input>({ type: 'hello' })
       .with({ type: not(__.string) }, (x) => {
         const notNever: NotNever<typeof x> = true;
         const inferenceCheck: Input = x;
         return 'ok';
       })
+      .run();
+    match<Input>({ type: 'hello' })
       .with({ type: not(when((x) => true)) }, (x) => {
         const notNever: NotNever<typeof x> = true;
         const inferenceCheck: Input = x;
         return 'ok';
       })
+      .run();
+    match<Input>({ type: 'hello' })
       .with(not({ type: when((x: string) => true) }), (x) => {
         const notNever: NotNever<typeof x> = true;
         const inferenceCheck: Input = x;
         return 'ok';
       })
+      .run();
+    match<Input>({ type: 'hello' })
+      .with({ type: __ }, (x) => {
+        const notNever: NotNever<typeof x> = true;
+        const inferenceCheck: { type: string } = x;
+        return 'ok';
+      })
+      .run();
+    match<Input>({ type: 'hello' })
+      .with({ type: not('hello' as 'hello') }, (x) => {
+        const notNever: NotNever<typeof x> = true;
+        const inferenceCheck: { type: string } = x;
+        return 'ok';
+      })
+      .run();
+    match<Input>({ type: 'hello' })
+      .with({ type: __.string }, (x) => {
+        const notNever: NotNever<typeof x> = true;
+        const inferenceCheck: { type: string } = x;
+        return 'ok';
+      })
+      .run();
+    match<Input>({ type: 'hello' })
       .with(not({ type: __.string }), (x) => {
         const notNever: NotNever<typeof x> = true;
         const inferenceCheck: string = x;
+        return 'ok';
+      })
+      .run();
+    match<Input>({ type: 'hello' })
+      .with(__.string, (x) => {
+        const notNever: NotNever<typeof x> = true;
+        const inferenceCheck: string = x;
+        return 'ok';
+      })
+      .run();
+    match<Input>({ type: 'hello' })
+      .with(not(__.string), (x) => {
+        const notNever: NotNever<typeof x> = true;
+        const inferenceCheck: { type: string } = x;
+        return 'ok';
+      })
+      .run();
+    match<Input>({ type: 'hello' })
+      .with(__, (x) => {
+        const notNever: NotNever<typeof x> = true;
+        const inferenceCheck: Input = x;
         return 'ok';
       })
       .run();
@@ -334,12 +362,12 @@ describe('match', () => {
         id: 2,
         content: { body: 'yo' },
       })
-        .with({ type: 'post', content: __ }, (x) => {
+        .with({ type: 'post', id: 7 } as const, (x) => {
           const notNever: NotNever<typeof x> = true;
           const inferenceCheck: Post = x;
           return 1;
         })
-        .with({ type: 'post', id: 7 }, (x) => {
+        .with({ type: 'post', content: __ }, (x) => {
           const notNever: NotNever<typeof x> = true;
           const inferenceCheck: Post = x;
           return 1;
@@ -472,35 +500,25 @@ describe('match', () => {
         it(`should work with ${tuple}`, () => {
           expect(
             match<[string, number], string>(tuple)
-              .with(['hello', 20], (x) => {
+              .with(['hello', 20] as const, (x) => {
                 const notNever: NotNever<typeof x> = true;
                 const inferenceCheck: [string, number] = x;
                 return `perfect match`;
               })
-              .with(['hello', __], (x) => {
+              .with(['hello', __] as const, (x) => {
                 const notNever: NotNever<typeof x> = true;
                 const inferenceCheck: [string, number] = x;
                 return `string match`;
               })
-              .with([__, 20], (x) => {
+              .with([__, 20] as const, (x) => {
                 const notNever: NotNever<typeof x> = true;
                 const inferenceCheck: [string, number] = x;
                 return `number match`;
               })
-              .with([__.string, __.number], (x) => {
+              .with([__.string, __.number] as const, (x) => {
                 const notNever: NotNever<typeof x> = true;
                 const inferenceCheck: [string, number] = x;
                 return `not matching`;
-              })
-              .with([__, __], (x) => {
-                const notNever: NotNever<typeof x> = true;
-                const inferenceCheck: [string, number] = x;
-                return `can't happen`;
-              })
-              .with(__, (x) => {
-                const notNever: NotNever<typeof x> = true;
-                const inferenceCheck: [string, number] = x;
-                return `can't happen`;
               })
               .run()
           ).toEqual(expected);
@@ -519,7 +537,7 @@ describe('match', () => {
             status: 'loading',
           }))
           .with(
-            [{ status: 'loading' }, { type: 'success' }],
+            [{ status: 'loading' }, { type: 'success' }] as const,
             ([, { data }]) => ({
               status: 'success',
               data,
@@ -565,15 +583,21 @@ describe('match', () => {
       const res = match<Map<string, { name: string }>>(usersMap)
         .with(
           new Map([
-            ['angégé', userPattern],
-            ['gab', userPattern],
+            ['angégé' as const, userPattern],
+            ['gab' as const, userPattern],
           ]),
           (map) => ({
             name: map.get('angégé')!.name + ' ' + map.get('gab')!.name,
           })
         )
-        .with(new Map([['angégé', userPattern]]), (map) => map.get('angégé')!)
-        .with(new Map([['gab', userPattern]]), (map) => map.get('gab')!)
+        .with(
+          new Map([['angégé' as const, userPattern]]),
+          (map) => map.get('angégé')!
+        )
+        .with(
+          new Map([['gab' as const, userPattern]]),
+          (map) => map.get('gab')!
+        )
         .with(__, () => ({ name: 'unknown' }))
         .run();
 
@@ -880,8 +904,9 @@ describe('match', () => {
         expect(
           match(value)
             .with(
-              { status: 'success' },
+              { status: 'success', data: select('data') },
               (x) => x.data.length > 3,
+              (x) => x.data.length < 10,
               (x) => {
                 const notNever: NotNever<typeof x> = true;
                 const inferenceCheck: { status: 'success'; data: string } = x;
@@ -889,12 +914,20 @@ describe('match', () => {
               }
             )
             .with(
-              { status: 'success', data: select('data') },
-              (x) => x.data.length > 3,
-              (x) => x.data.length < 10,
+              { status: 'error' },
+              (x) => x.error.message.length > 3,
               (x) => {
                 const notNever: NotNever<typeof x> = true;
-                const inferenceCheck: { status: 'success'; data: string } = x;
+                const inferenceCheck: { status: 'error'; error: Error } = x;
+                return true;
+              }
+            )
+            .with(
+              { status: 'error' },
+              (x) => x.error.message.length <= 3,
+              (x) => {
+                const notNever: NotNever<typeof x> = true;
+                const inferenceCheck: { status: 'error'; error: Error } = x;
                 return true;
               }
             )

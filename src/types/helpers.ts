@@ -34,3 +34,20 @@ export type UnionToIntersection<U> = (
 ) extends (k: infer I) => void
   ? I
   : never;
+
+/**
+ * GuardValue returns the value guarded by a type guard function.
+ */
+export type GuardValue<F> = F extends (value: any) => value is infer b
+  ? b
+  : F extends (value: infer a) => unknown
+  ? a
+  : never;
+
+/**
+ * StrictGuardValue.
+ * Same as GuardValue but only takes a real type guard
+ */
+export type StrictGuardValue<F> = F extends (value: any) => value is infer b
+  ? b
+  : never;

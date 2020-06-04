@@ -16,15 +16,6 @@ export type Primitives =
   | symbol
   | bigint;
 
-/**
- * GuardValue returns the value guarded by a type guard function.
- */
-export type GuardValue<F> = F extends (value: any) => value is infer b
-  ? b
-  : F extends (value: infer a) => unknown
-  ? a
-  : never;
-
 export type GuardFunction<a, b extends a> =
   | ((value: a) => value is b)
   | ((value: a) => boolean);
@@ -65,27 +56,33 @@ export type Pattern<a> =
   | (a extends Primitives
       ? a
       : a extends [infer b, infer c, infer d, infer e, infer f]
-      ? [Pattern<b>, Pattern<c>, Pattern<d>, Pattern<e>, Pattern<f>]
+      ? readonly [Pattern<b>, Pattern<c>, Pattern<d>, Pattern<e>, Pattern<f>]
       : a extends [infer b, infer c, infer d, infer e]
-      ? [Pattern<b>, Pattern<c>, Pattern<d>, Pattern<e>]
+      ? readonly [Pattern<b>, Pattern<c>, Pattern<d>, Pattern<e>]
       : a extends [infer b, infer c, infer d]
-      ? [Pattern<b>, Pattern<c>, Pattern<d>]
+      ? readonly [Pattern<b>, Pattern<c>, Pattern<d>]
       : a extends [infer b, infer c]
-      ? [Pattern<b>, Pattern<c>]
+      ? readonly [Pattern<b>, Pattern<c>]
       : a extends (infer b)[]
       ?
-          | []
-          | [Pattern<b>]
-          | [Pattern<b>, Pattern<b>]
-          | [Pattern<b>, Pattern<b>, Pattern<b>]
-          | [Pattern<b>, Pattern<b>, Pattern<b>, Pattern<b>]
-          | [Pattern<b>, Pattern<b>, Pattern<b>, Pattern<b>, Pattern<b>]
+          | readonly []
+          | readonly [Pattern<b>]
+          | readonly [Pattern<b>, Pattern<b>]
+          | readonly [Pattern<b>, Pattern<b>, Pattern<b>]
+          | readonly [Pattern<b>, Pattern<b>, Pattern<b>, Pattern<b>]
+          | readonly [
+              Pattern<b>,
+              Pattern<b>,
+              Pattern<b>,
+              Pattern<b>,
+              Pattern<b>
+            ]
       : a extends Map<infer k, infer v>
       ? Map<k, Pattern<v>>
       : a extends Set<infer v>
       ? Set<Pattern<v>>
       : a extends object
-      ? { [k in keyof a]?: Pattern<a[k]> }
+      ? { readonly [k in keyof a]?: Pattern<a[k]> }
       : a);
 
 export const when = <a, b extends a = a>(

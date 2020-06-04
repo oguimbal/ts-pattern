@@ -4,12 +4,16 @@ import {
   GuardPattern,
   NotPattern,
   PatternType,
-  GuardValue,
   __,
   when,
   not,
   select,
 } from './types/Pattern';
+import {
+  GuardValue,
+  StrictGuardValue,
+  ExcludeIfNotEqual,
+} from './types/helpers';
 import { Unset, Match, PickReturnValue } from './types/Match';
 
 /**
@@ -44,7 +48,7 @@ const builder = <a, b>(
   with<p extends Pattern<a>, c>(
     pattern: p,
     ...args: any[]
-  ): Match<a, PickReturnValue<b, c>> {
+  ): Match<any, PickReturnValue<b, c>> {
     const handler = args[args.length - 1];
     const predicates = args.slice(0, -1);
 
@@ -67,8 +71,8 @@ const builder = <a, b>(
   when: <p extends (value: a) => unknown, c>(
     predicate: p,
     handler: (value: GuardValue<p>) => PickReturnValue<b, c>
-  ): Match<a, PickReturnValue<b, c>> =>
-    builder<a, PickReturnValue<b, c>>(value, [
+  ): Match<any, PickReturnValue<b, c>> =>
+    builder<any, PickReturnValue<b, c>>(value, [
       ...patterns,
       {
         test: predicate,
@@ -77,9 +81,7 @@ const builder = <a, b>(
       },
     ]),
 
-  otherwise: <c>(
-    handler: () => PickReturnValue<b, c>
-  ): Match<a, PickReturnValue<b, c>> =>
+  otherwise: <c>(handler: () => PickReturnValue<b, c>): any =>
     builder<a, PickReturnValue<b, c>>(value, [
       ...patterns,
       {
